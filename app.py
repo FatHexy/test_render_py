@@ -14,7 +14,7 @@ else:
     print("PERINGATAN: GEMINI_API_KEY belum disetting!")
 
 # Konfigurasi Model (Gunakan gemini-1.5-flash agar cepat dan hemat)
-model = genai.GenerativeModel('gemini-1.5-flash')
+model = genai.GenerativeModel('gemini-2.5-flash')
 
 @app.route('/')
 def home():
