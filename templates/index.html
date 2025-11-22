@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gemini Chatbot</title>
+    <style>
+        body { font-family: sans-serif; background-color: #f4f4f9; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .chat-container { width: 400px; background: white; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); overflow: hidden; display: flex; flex-direction: column; height: 80vh; }
+        .chat-header { background: #4a90e2; color: white; padding: 15px; text-align: center; font-weight: bold; }
+        .chat-box { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+        .message { max-width: 80%; padding: 10px; border-radius: 10px; line-height: 1.4; font-size: 14px; }
+        .user-msg { align-self: flex-end; background: #4a90e2; color: white; border-bottom-right-radius: 0; }
+        .bot-msg { align-self: flex-start; background: #e5e5ea; color: black; border-bottom-left-radius: 0; }
+        .input-area { display: flex; padding: 10px; border-top: 1px solid #eee; }
+        input { flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 5px; outline: none; }
+        button { margin-left: 10px; padding: 10px 15px; background: #4a90e2; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        button:hover { background: #357abd; }
+        button:disabled { background: #ccc; }
+    </style>
+</head>
+<body>
+
+<div class="chat-container">
+    <div class="chat-header">Gemini AI Chat</div>
+    <div class="chat-box" id="chat-box">
+        <div class="message bot-msg">Halo! Ada yang bisa saya bantu?</div>
+    </div>
+    <div class="input-area">
+        <input type="text" id="user-input" placeholder="Tulis pesan..." onkeypress="handleEnter(event)">
+        <button onclick="sendMessage()" id="send-btn">Kirim</button>
+    </div>
+</div>
+
+<script>
+    async function sendMessage() {
+        const inputField = document.getElementById("user-input");
+        const sendBtn = document.getElementById("send-btn");
+        const chatBox = document.getElementById("chat-box");
+        const message = inputField.value.trim();
+
+        if (!message) return;
+
+        // Tampilkan pesan user
+        addMessage(message, "user-msg");
+        inputField.value = "";
+        inputField.disabled = true;
+        sendBtn.disabled = true;
+        sendBtn.innerText = "...";
+
+        try {
+            const response = await fetch("/api/chat", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ message: message })
+            });
+
+            const data = await response.json();
+            
+            if (data.error) {
+                addMessage("Error: " + data.error, "bot-msg");
+            } else {
+                addMessage(data.reply, "bot-msg");
+            }
+
+        } catch (error) {
+            addMessage("Gagal terhubung ke server.", "bot-msg");
+        }
+
+        inputField.disabled = false;
+        sendBtn.disabled = false;
+        sendBtn.innerText = "Kirim";
+        inputField.focus();
+    }
+
+    function addMessage(text, className) {
+        const chatBox = document.getElementById("chat-box");
+        const msgDiv = document.createElement("div");
+        msgDiv.classList.add("message", className);
+        msgDiv.innerText = text;
+        chatBox.appendChild(msgDiv);
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    function handleEnter(event) {
+        if (event.key === "Enter") sendMessage();
+    }
+</script>
+
+</body>
+</html>
